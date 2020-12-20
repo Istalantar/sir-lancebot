@@ -15,11 +15,11 @@ import aiohttp
 import async_timeout
 from PIL import Image, ImageDraw, ImageFont
 from discord import Colour, Embed, File, Member, Message, Reaction
-from discord.ext.commands import BadArgument, Bot, Cog, CommandError, Context, bot_has_permissions, group
+from discord.ext.commands import Bot, Cog, CommandError, Context, bot_has_permissions, group
 
 from bot.constants import ERROR_REPLIES, Tokens
-from bot.exts.evergreen.snakes import utils
-from bot.exts.evergreen.snakes.converter import Snake
+from bot.exts.evergreen.snakes import _utils as utils
+from bot.exts.evergreen.snakes._converter import Snake
 from bot.utils.decorators import locked
 
 log = logging.getLogger(__name__)
@@ -1083,13 +1083,13 @@ class Snakes(Cog):
             url,
             params={
                 "part": "snippet",
-                "q": urllib.parse.quote(query),
+                "q": urllib.parse.quote_plus(query),
                 "type": "video",
                 "key": Tokens.youtube
             }
         )
         response = await response.json()
-        data = response['items']
+        data = response.get("items", [])
 
         # Send the user a video
         if len(data) > 0:
@@ -1126,26 +1126,15 @@ class Snakes(Cog):
     # endregion
 
     # region: Error handlers
-    @get_command.error
     @card_command.error
-    @video_command.error
     async def command_error(self, ctx: Context, error: CommandError) -> None:
         """Local error handler for the Snake Cog."""
-        embed = Embed()
-        embed.colour = Colour.red()
-
-        if isinstance(error, BadArgument):
-            embed.description = str(error)
-            embed.title = random.choice(ERROR_REPLIES)
-
-        elif isinstance(error, OSError):
-            log.error(f"snake_card encountered an OSError: {error} ({error.original})")
+        original_error = getattr(error, "original", None)
+        if isinstance(original_error, OSError):
+            error.handled = True
+            embed = Embed()
+            embed.colour = Colour.red()
+            log.error(f"snake_card encountered an OSError: {error} ({original_error})")
             embed.description = "Could not generate the snake card! Please try again."
             embed.title = random.choice(ERROR_REPLIES)
-
-        else:
-            log.error(f"Unhandled tag command error: {error} ({error.original})")
-            return
-
-        await ctx.send(embed=embed)
-    # endregion
+            await ctx.send(embed=embed)
