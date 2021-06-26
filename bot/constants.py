@@ -8,7 +8,9 @@ from typing import Dict, NamedTuple
 __all__ = (
     "AdventOfCode",
     "Branding",
+    "Cats",
     "Channels",
+    "Categories",
     "Client",
     "Colours",
     "Emojis",
@@ -18,7 +20,9 @@ __all__ = (
     "Roles",
     "Tokens",
     "Wolfram",
+    "Reddit",
     "RedisConfig",
+    "RedirectOutput",
     "MODERATION_ROLES",
     "STAFF_ROLES",
     "WHITELISTED_CHANNELS",
@@ -92,56 +96,36 @@ class Branding:
     cycle_frequency = int(environ.get("CYCLE_FREQUENCY", 3))  # 0: never, 1: every day, 2: every other day, ...
 
 
+class Cats:
+    cats = ["ᓚᘏᗢ", "ᘡᘏᗢ", "🐈", "ᓕᘏᗢ", "ᓇᘏᗢ", "ᓂᘏᗢ", "ᘣᘏᗢ", "ᕦᘏᗢ", "ᕂᘏᗢ"]
+
+
 class Channels(NamedTuple):
-    admins = 365960823622991872
     advent_of_code = int(environ.get("AOC_CHANNEL_ID", 782715290437943306))
     advent_of_code_commands = int(environ.get("AOC_COMMANDS_CHANNEL_ID", 607247579608121354))
-    announcements = int(environ.get("CHANNEL_ANNOUNCEMENTS", 354619224620138496))
-    big_brother_logs = 468507907357409333
     bot = 267659945086812160
-    checkpoint_test = 422077681434099723
-    devalerts = 460181980097675264
+    organisation = 551789653284356126
     devlog = int(environ.get("CHANNEL_DEVLOG", 622895325144940554))
     dev_contrib = 635950537262759947
-    dev_branding = 753252897059373066
-    help_0 = 303906576991780866
-    help_1 = 303906556754395136
-    help_2 = 303906514266226689
-    help_3 = 439702951246692352
-    help_4 = 451312046647148554
-    help_5 = 454941769734422538
-    helpers = 385474242440986624
-    message_log = 467752170159079424
-    mod_alerts = 473092532147060736
-    modlog = 282638479504965634
+    mod_meta = 775412552795947058
+    mod_tools = 775413915391098921
     off_topic_0 = 291284109232308226
     off_topic_1 = 463035241142026251
     off_topic_2 = 463035268514185226
-    python = 267624335836053506
-    reddit = 458224812528238616
     community_bot_commands = int(environ.get("CHANNEL_COMMUNITY_BOT_COMMANDS", 607247579608121354))
-    staff_lounge = 464905259261755392
-    verification = 352442727016693763
-    python_discussion = 267624335836053506
     hacktoberfest_2020 = 760857070781071431
-    voice_chat = 412357430186344448
+    voice_chat_0 = 412357430186344448
+    voice_chat_1 = 799647045886541885
+    staff_voice = 541638762007101470
+    reddit = int(environ.get("CHANNEL_REDDIT", 458224812528238616))
 
-    # Core Dev Sprint channels
-    sprint_announcements = 755958119963557958
-    sprint_information = 753338352136224798
-    sprint_organisers = 753340132639375420
-    sprint_general = 753340631538991305
-    sprint_social1_cheese_shop = 758779754789863514
-    sprint_social2_pet_shop = 758780951978573824
-    sprint_escape_room = 761031075942105109
-    sprint_stdlib = 758553316732698634
-    sprint_asyncio = 762904152438472714
-    sprint_typing = 762904690341838888
-    sprint_discussion_capi = 758553358587527218
-    sprint_discussion_triage = 758553458365300746
-    sprint_discussion_design = 758553492662255616
-    sprint_discussion_mentor = 758553536623280159
-    sprint_documentation = 761038271127093278
+
+class Categories(NamedTuple):
+    help_in_use = 696958401460043776
+    development = 411199786025484308
+    devprojects = 787641585624940544
+    media = 799054581991997460
+    staff = 364918151625965579
 
 
 class Client(NamedTuple):
@@ -157,25 +141,47 @@ class Client(NamedTuple):
 
 
 class Colours:
-    blue = 0x0279fd
-    bright_green = 0x01d277
-    dark_green = 0x1f8b4c
-    orange = 0xe67e22
-    pink = 0xcf84e0
-    purple = 0xb734eb
-    soft_green = 0x68c290
-    soft_orange = 0xf9cb54
-    soft_red = 0xcd6d6d
-    yellow = 0xf9f586
+    blue = 0x0279FD
+    bright_green = 0x01D277
+    dark_green = 0x1F8B4C
+    orange = 0xE67E22
+    pink = 0xCF84E0
+    purple = 0xB734EB
+    soft_green = 0x68C290
+    soft_orange = 0xF9CB54
+    soft_red = 0xCD6D6D
+    yellow = 0xF9F586
+    python_blue = 0x4B8BBE
+    python_yellow = 0xFFD43B
+    grass_green = 0x66FF00
+    gold = 0xE6C200
+
+    easter_like_colours = [
+        (255, 247, 0),
+        (255, 255, 224),
+        (0, 255, 127),
+        (189, 252, 201),
+        (255, 192, 203),
+        (255, 160, 122),
+        (181, 115, 220),
+        (221, 160, 221),
+        (200, 162, 200),
+        (238, 130, 238),
+        (135, 206, 235),
+        (0, 204, 204),
+        (64, 224, 208),
+    ]
 
 
 class Emojis:
+    cross_mark = "\u274C"
     star = "\u2B50"
     christmas_tree = "\U0001F384"
     check = "\u2611"
     envelope = "\U0001F4E8"
-    trashcan = "<:trashcan:637136429717389331>"
+    trashcan = environ.get("TRASHCAN_EMOJI", "<:trashcan:637136429717389331>")
     ok_hand = ":ok_hand:"
+    hand_raised = "\U0001F64B"
 
     dice_1 = "<:dice_1:755891608859443290>"
     dice_2 = "<:dice_2:755891608741740635>"
@@ -184,16 +190,50 @@ class Emojis:
     dice_5 = "<:dice_5:755891608091885627>"
     dice_6 = "<:dice_6:755891607680843838>"
 
-    issue = "<:IssueOpen:629695470327037963>"
-    issue_closed = "<:IssueClosed:629695470570307614>"
-    pull_request = "<:PROpen:629695470175780875>"
-    pull_request_closed = "<:PRClosed:629695470519713818>"
-    merge = "<:PRMerged:629695470570176522>"
+    # These icons are from Github's repo https://github.com/primer/octicons/
+    issue_open = "<:IssueOpen:852596024777506817>"
+    issue_closed = "<:IssueClosed:852596024739758081>"
+    issue_draft = "<:IssueDraft:852596025147523102>"  # Not currently used by Github, but here for future.
+    pull_request_open = "<:PROpen:852596471505223781>"
+    pull_request_closed = "<:PRClosed:852596024732286976>"
+    pull_request_draft = "<:PRDraft:852596025045680218>"
+    pull_request_merged = "<:PRMerged:852596100301193227>"
+
+    number_emojis = {
+        1: "\u0031\ufe0f\u20e3",
+        2: "\u0032\ufe0f\u20e3",
+        3: "\u0033\ufe0f\u20e3",
+        4: "\u0034\ufe0f\u20e3",
+        5: "\u0035\ufe0f\u20e3",
+        6: "\u0036\ufe0f\u20e3",
+        7: "\u0037\ufe0f\u20e3",
+        8: "\u0038\ufe0f\u20e3",
+        9: "\u0039\ufe0f\u20e3"
+    }
+
+    confirmation = "\u2705"
+    decline = "\u274c"
+    incident_unactioned = "<:incident_unactioned:719645583245180960>"
+
+    x = "\U0001f1fd"
+    o = "\U0001f1f4"
+
+    x_square = "<:x_square:632278427260682281>"
+    o_square = "<:o_square:632278452413661214>"
 
     status_online = "<:status_online:470326272351010816>"
     status_idle = "<:status_idle:470326266625785866>"
     status_dnd = "<:status_dnd:470326272082313216>"
     status_offline = "<:status_offline:470326266537705472>"
+
+    # Reddit emojis
+    reddit = "<:reddit:676030265734332427>"
+    reddit_post_text = "<:reddit_post_text:676030265910493204>"
+    reddit_post_video = "<:reddit_post_video:676030265839190047>"
+    reddit_post_photo = "<:reddit_post_photo:676030265734201344>"
+    reddit_upvote = "<:reddit_upvote:755845219890757644>"
+    reddit_comments = "<:reddit_comments:755845255001014384>"
+    reddit_users = "<:reddit_users:755845303822974997>"
 
 
 class Icons:
@@ -234,30 +274,23 @@ if Client.month_override is not None:
 
 class Roles(NamedTuple):
     admin = int(environ.get("BOT_ADMIN_ROLE_ID", 267628507062992896))
-    announcements = 463658397560995840
-    champion = 430492892331769857
-    contributor = 295488872404484098
-    developer = 352427296948486144
-    devops = 409416496733880320
-    jammer = 423054537079783434
     moderator = 267629731250176001
-    muted = 277914926603829249
     owner = 267627879762755584
-    verified = 352427296948486144
     helpers = int(environ.get("ROLE_HELPERS", 267630620367257601))
-    rockstars = 458226413825294336
     core_developers = 587606783669829632
-    events_lead = 778361735739998228
 
 
 class Tokens(NamedTuple):
     giphy = environ.get("GIPHY_TOKEN")
+    aoc_session_cookie = environ.get("AOC_SESSION_COOKIE")
     omdb = environ.get("OMDB_API_KEY")
     youtube = environ.get("YOUTUBE_API_KEY")
     tmdb = environ.get("TMDB_API_KEY")
     nasa = environ.get("NASA_API_KEY")
-    igdb = environ.get("IGDB_API_KEY")
+    igdb_client_id = environ.get("IGDB_CLIENT_ID")
+    igdb_client_secret = environ.get("IGDB_CLIENT_SECRET")
     github = environ.get("GITHUB_TOKEN")
+    unsplash_access_key = environ.get("UNSPLASH_KEY")
 
 
 class Wolfram(NamedTuple):
@@ -273,13 +306,21 @@ class RedisConfig(NamedTuple):
     use_fakeredis = environ.get("USE_FAKEREDIS", "false").lower() == "true"
 
 
-class Wikipedia:
-    total_chance = 3
-
-
 class Source:
     github = "https://github.com/python-discord/sir-lancebot"
     github_avatar_url = "https://avatars1.githubusercontent.com/u/9919"
+
+
+class RedirectOutput:
+    delete_delay: int = 10
+
+
+class Reddit:
+    subreddits = ["r/Python"]
+
+    client_id = environ.get("REDDIT_CLIENT_ID")
+    secret = environ.get("REDDIT_SECRET")
+    webhook = int(environ.get("REDDIT_WEBHOOK", 635408384794951680))
 
 
 # Default role combinations
@@ -293,25 +334,11 @@ WHITELISTED_CHANNELS = (
     Channels.off_topic_0,
     Channels.off_topic_1,
     Channels.off_topic_2,
-    Channels.voice_chat,
-
-    # Core Dev Sprint Channels
-    Channels.sprint_announcements,
-    Channels.sprint_information,
-    Channels.sprint_organisers,
-    Channels.sprint_general,
-    Channels.sprint_social1_cheese_shop,
-    Channels.sprint_social2_pet_shop,
-    Channels.sprint_escape_room,
-    Channels.sprint_stdlib,
-    Channels.sprint_asyncio,
-    Channels.sprint_typing,
-    Channels.sprint_discussion_capi,
-    Channels.sprint_discussion_triage,
-    Channels.sprint_discussion_design,
-    Channels.sprint_discussion_mentor,
-    Channels.sprint_documentation,
+    Channels.voice_chat_0,
+    Channels.voice_chat_1,
 )
+
+GIT_SHA = environ.get("GIT_SHA", "foobar")
 
 # Bot replies
 ERROR_REPLIES = [
