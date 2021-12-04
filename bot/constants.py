@@ -3,7 +3,7 @@ import enum
 import logging
 from datetime import datetime
 from os import environ
-from typing import Dict, NamedTuple
+from typing import NamedTuple
 
 __all__ = (
     "AdventOfCode",
@@ -56,7 +56,7 @@ class AdventOfCodeLeaderboard:
         return self._session
 
 
-def _parse_aoc_leaderboard_env() -> Dict[str, AdventOfCodeLeaderboard]:
+def _parse_aoc_leaderboard_env() -> dict[str, AdventOfCodeLeaderboard]:
     """
     Parse the environment variable containing leaderboard information.
 
@@ -88,6 +88,7 @@ class AdventOfCode:
     ignored_days = environ.get("AOC_IGNORED_DAYS", "").split(",")
     leaderboard_displayed_members = 10
     leaderboard_cache_expiry_seconds = 1800
+    max_day_and_star_results = 15
     year = int(environ.get("AOC_YEAR", datetime.utcnow().year))
     role_id = int(environ.get("AOC_ROLE_ID", 518565788744024082))
 
@@ -101,8 +102,8 @@ class Cats:
 
 
 class Channels(NamedTuple):
-    advent_of_code = int(environ.get("AOC_CHANNEL_ID", 782715290437943306))
-    advent_of_code_commands = int(environ.get("AOC_COMMANDS_CHANNEL_ID", 607247579608121354))
+    advent_of_code = int(environ.get("AOC_CHANNEL_ID", 897932085766004786))
+    advent_of_code_commands = int(environ.get("AOC_COMMANDS_CHANNEL_ID", 897932607545823342))
     bot = 267659945086812160
     organisation = 551789653284356126
     devlog = int(environ.get("CHANNEL_DEVLOG", 622895325144940554))
@@ -113,7 +114,6 @@ class Channels(NamedTuple):
     off_topic_1 = 463035241142026251
     off_topic_2 = 463035268514185226
     community_bot_commands = int(environ.get("CHANNEL_COMMUNITY_BOT_COMMANDS", 607247579608121354))
-    hacktoberfest_2020 = 760857070781071431
     voice_chat_0 = 412357430186344448
     voice_chat_1 = 799647045886541885
     staff_voice = 541638762007101470
@@ -127,17 +127,19 @@ class Categories(NamedTuple):
     media = 799054581991997460
     staff = 364918151625965579
 
+codejam_categories_name = "Code Jam"  # Name of the codejam team categories
 
 class Client(NamedTuple):
     name = "Sir Lancebot"
     guild = int(environ.get("BOT_GUILD", 267624335836053506))
     prefix = environ.get("PREFIX", ".")
     token = environ.get("BOT_TOKEN")
-    sentry_dsn = environ.get("BOT_SENTRY_DSN")
-    debug = environ.get("BOT_DEBUG", "").lower() == "true"
+    debug = environ.get("BOT_DEBUG", "true").lower() == "true"
+    file_logs = environ.get("FILE_LOGS", "false").lower() == "true"
     github_bot_repo = "https://github.com/python-discord/sir-lancebot"
     # Override seasonal locks: 1 (January) to 12 (December)
     month_override = int(environ["MONTH_OVERRIDE"]) if "MONTH_OVERRIDE" in environ else None
+    trace_loggers = environ.get("BOT_TRACE_LOGGERS")
 
 
 class Colours:
@@ -226,6 +228,10 @@ class Emojis:
     status_dnd = "<:status_dnd:470326272082313216>"
     status_offline = "<:status_offline:470326266537705472>"
 
+
+    stackoverflow_tag = "<:stack_tag:870926975307501570>"
+    stackoverflow_views = "<:stack_eye:870926992692879371>"
+
     # Reddit emojis
     reddit = "<:reddit:676030265734332427>"
     reddit_post_text = "<:reddit_post_text:676030265910493204>"
@@ -234,6 +240,9 @@ class Emojis:
     reddit_upvote = "<:reddit_upvote:755845219890757644>"
     reddit_comments = "<:reddit_comments:755845255001014384>"
     reddit_users = "<:reddit_users:755845303822974997>"
+
+    lemon_hyperpleased = "<:lemon_hyperpleased:754441879822663811>"
+    lemon_pensive = "<:lemon_pensive:754441880246419486>"
 
 
 class Icons:
@@ -273,11 +282,12 @@ if Client.month_override is not None:
 
 
 class Roles(NamedTuple):
-    admin = int(environ.get("BOT_ADMIN_ROLE_ID", 267628507062992896))
-    moderator = 267629731250176001
-    owner = 267627879762755584
+    owners = 267627879762755584
+    admins = int(environ.get("BOT_ADMIN_ROLE_ID", 267628507062992896))
+    moderation_team = 267629731250176001
     helpers = int(environ.get("ROLE_HELPERS", 267630620367257601))
     core_developers = 587606783669829632
+    everyone = int(environ.get("BOT_GUILD", 267624335836053506))
 
 
 class Tokens(NamedTuple):
@@ -324,8 +334,8 @@ class Reddit:
 
 
 # Default role combinations
-MODERATION_ROLES = Roles.moderator, Roles.admin, Roles.owner
-STAFF_ROLES = Roles.helpers, Roles.moderator, Roles.admin, Roles.owner
+MODERATION_ROLES = {Roles.moderation_team, Roles.admins, Roles.owners}
+STAFF_ROLES = {Roles.helpers, Roles.moderation_team, Roles.admins, Roles.owners}
 
 # Whitelisted channels
 WHITELISTED_CHANNELS = (
@@ -337,8 +347,6 @@ WHITELISTED_CHANNELS = (
     Channels.voice_chat_0,
     Channels.voice_chat_1,
 )
-
-GIT_SHA = environ.get("GIT_SHA", "foobar")
 
 # Bot replies
 ERROR_REPLIES = [

@@ -1,16 +1,10 @@
 import datetime
 import logging
-from typing import Callable, Container, Iterable, Optional
+from collections.abc import Container, Iterable
+from typing import Callable, Optional
 
 from discord.ext.commands import (
-    BucketType,
-    CheckFailure,
-    Cog,
-    Command,
-    CommandOnCooldown,
-    Context,
-    Cooldown,
-    CooldownMapping,
+    BucketType, CheckFailure, Cog, Command, CommandOnCooldown, Context, Cooldown, CooldownMapping
 )
 
 from bot import constants
@@ -21,7 +15,7 @@ log = logging.getLogger(__name__)
 class InWhitelistCheckFailure(CheckFailure):
     """Raised when the `in_whitelist` check fails."""
 
-    def __init__(self, redirect_channel: Optional[int]) -> None:
+    def __init__(self, redirect_channel: Optional[int]):
         self.redirect_channel = redirect_channel
 
         if redirect_channel:
@@ -73,6 +67,11 @@ def in_whitelist_check(
     # Only check the category id if we have a category whitelist and the channel has a `category_id`
     if categories and hasattr(ctx.channel, "category_id") and ctx.channel.category_id in categories:
         log.trace(f"{ctx.author} may use the `{ctx.command.name}` command as they are in a whitelisted category.")
+        return True
+
+    category = getattr(ctx.channel, "category", None)
+    if category and category.name == constants.codejam_categories_name:
+        log.trace(f"{ctx.author} may use the `{ctx.command.name}` command as they are in a codejam team channel.")
         return True
 
     # Only check the roles whitelist if we have one and ensure the author's roles attribute returns
