@@ -1,0 +1,6 @@
+\documentclass{article}
+\usepackage{amsmath, amssymb}
+\begin{document}
+    \pagenumbering{gobble}
+    $text
+\end{document}

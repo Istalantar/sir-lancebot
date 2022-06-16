@@ -55,7 +55,7 @@ class CandyCollection(commands.Cog):
         if message.author.bot:
             return
         # ensure it's hacktober channel
-        if message.channel.id != Channels.community_bot_commands:
+        if message.channel.id != Channels.sir_lancebot_playground:
             return
 
         # do random check for skull first as it has the lower chance
@@ -77,7 +77,7 @@ class CandyCollection(commands.Cog):
             return
 
         # check to ensure it is in correct channel
-        if message.channel.id != Channels.community_bot_commands:
+        if message.channel.id != Channels.sir_lancebot_playground:
             return
 
         # if its not a candy or skull, and it is one of 10 most recent messages,
@@ -139,7 +139,7 @@ class CandyCollection(commands.Cog):
     @property
     def hacktober_channel(self) -> discord.TextChannel:
         """Get #hacktoberbot channel from its ID."""
-        return self.bot.get_channel(Channels.community_bot_commands)
+        return self.bot.get_channel(Channels.sir_lancebot_playground)
 
     @staticmethod
     async def send_spook_msg(
@@ -187,10 +187,21 @@ class CandyCollection(commands.Cog):
                 for index, record in enumerate(top_five)
             ) if top_five else "No Candies"
 
+        def get_user_candy_score() -> str:
+            for user_id, score in records:
+                if user_id == ctx.author.id:
+                    return f"{ctx.author.mention}: {score}"
+            return f"{ctx.author.mention}: 0"
+
         e = discord.Embed(colour=discord.Colour.og_blurple())
         e.add_field(
             name="Top Candy Records",
             value=generate_leaderboard(),
+            inline=False
+        )
+        e.add_field(
+            name="Your Candy Score",
+            value=get_user_candy_score(),
             inline=False
         )
         e.add_field(
