@@ -1,6 +1,5 @@
 import logging
 import random
-from typing import Union
 
 import discord
 from async_rediscache import RedisCache
@@ -18,17 +17,17 @@ ADD_CANDY_EXISTING_REACTION_CHANCE = 10  # 10%
 ADD_SKULL_REACTION_CHANCE = 50  # 2%
 ADD_SKULL_EXISTING_REACTION_CHANCE = 20  # 5%
 
-EMOJIS = dict(
-    CANDY="\N{CANDY}",
-    SKULL="\N{SKULL}",
-    MEDALS=(
+EMOJIS = {
+    "CANDY": "\N{CANDY}",
+    "SKULL": "\N{SKULL}",
+    "MEDALS": (
         "\N{FIRST PLACE MEDAL}",
         "\N{SECOND PLACE MEDAL}",
         "\N{THIRD PLACE MEDAL}",
         "\N{SPORTS MEDAL}",
         "\N{SPORTS MEDAL}",
     ),
-)
+}
 
 
 class CandyCollection(commands.Cog):
@@ -69,7 +68,7 @@ class CandyCollection(commands.Cog):
 
     @in_month(Month.OCTOBER)
     @commands.Cog.listener()
-    async def on_reaction_add(self, reaction: discord.Reaction, user: Union[discord.User, discord.Member]) -> None:
+    async def on_reaction_add(self, reaction: discord.Reaction, user: discord.User | discord.Member) -> None:
         """Add/remove candies from a person if the reaction satisfies criteria."""
         message = reaction.message
         # check to ensure the reactor is human
@@ -88,10 +87,7 @@ class CandyCollection(commands.Cog):
             if message.author.bot:
                 return
 
-            recent_message_ids = map(
-                lambda m: m.id,
-                await self.hacktober_channel.history(limit=10).flatten()
-            )
+            recent_message_ids = [message.id async for message in self.hacktober_channel.history(limit=10)]
             if message.id in recent_message_ids:
                 await self.reacted_msg_chance(message)
             return
@@ -143,7 +139,7 @@ class CandyCollection(commands.Cog):
 
     @staticmethod
     async def send_spook_msg(
-        author: discord.Member, channel: discord.TextChannel, candies: Union[str, int]
+        author: discord.Member, channel: discord.TextChannel, candies: str | int
     ) -> None:
         """Send a spooky message."""
         e = discord.Embed(colour=author.colour)
@@ -214,6 +210,6 @@ class CandyCollection(commands.Cog):
         await ctx.send(embed=e)
 
 
-def setup(bot: Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Load the Candy Collection Cog."""
-    bot.add_cog(CandyCollection(bot))
+    await bot.add_cog(CandyCollection(bot))

@@ -1,22 +1,22 @@
-import difflib
 import logging
 import math
 import random
 from collections.abc import Iterable
-from typing import Union
 
 from discord import Embed, Message
 from discord.ext import commands
 from sentry_sdk import push_scope
 
 from bot.bot import Bot
-from bot.constants import Channels, Colours, ERROR_REPLIES, NEGATIVE_REPLIES, RedirectOutput
+from bot.constants import Channels, Colours, ERROR_REPLIES, NEGATIVE_REPLIES
+from bot.utils.commands import get_command_suggestions
 from bot.utils.decorators import InChannelCheckFailure, InMonthCheckFailure
 from bot.utils.exceptions import APIError, MovedCommandError, UserNotPlayingError
 
 log = logging.getLogger(__name__)
 
 
+DELETE_DELAY = 10
 QUESTION_MARK_ICON = "https://cdn.discordapp.com/emojis/512367613339369475.png"
 
 
@@ -35,7 +35,7 @@ class CommandErrorHandler(commands.Cog):
             logging.debug("Cooldown counter reverted as the command was not used correctly.")
 
     @staticmethod
-    def error_embed(message: str, title: Union[Iterable, str] = ERROR_REPLIES) -> Embed:
+    def error_embed(message: str, title: Iterable | str = ERROR_REPLIES) -> Embed:
         """Build a basic embed with red colour and either a random error title or a title provided."""
         embed = Embed(colour=Colours.soft_red)
         if isinstance(title, str):
@@ -59,17 +59,19 @@ class CommandErrorHandler(commands.Cog):
 
         error = getattr(error, "original", error)
         logging.debug(
-            f"Error Encountered: {type(error).__name__} - {str(error)}, "
+            f"Error Encountered: {type(error).__name__} - {error!s}, "
             f"Command: {ctx.command}, "
             f"Author: {ctx.author}, "
             f"Channel: {ctx.channel}"
         )
 
         if isinstance(error, commands.CommandNotFound):
-            await self.send_command_suggestion(ctx, ctx.invoked_with)
+            # Ignore messages that start with "..", as they were likely not meant to be commands
+            if not ctx.invoked_with.startswith("."):
+                await self.send_command_suggestion(ctx, ctx.invoked_with)
             return
 
-        if isinstance(error, (InChannelCheckFailure, InMonthCheckFailure)):
+        if isinstance(error, InChannelCheckFailure | InMonthCheckFailure):
             await ctx.send(embed=self.error_embed(str(error), NEGATIVE_REPLIES), delete_after=7.5)
             return
 
@@ -154,38 +156,38 @@ class CommandErrorHandler(commands.Cog):
             if ctx.guild is not None:
                 scope.set_extra("jump_to", ctx.message.jump_url)
 
-            log.exception(f"Unhandled command error: {str(error)}", exc_info=error)
+            log.exception(f"Unhandled command error: {error!s}", exc_info=error)
 
     async def send_command_suggestion(self, ctx: commands.Context, command_name: str) -> None:
         """Sends user similar commands if any can be found."""
-        raw_commands = []
-        for cmd in self.bot.walk_commands():
-            if not cmd.hidden:
-                raw_commands += (cmd.name, *cmd.aliases)
-        if similar_command_data := difflib.get_close_matches(command_name, raw_commands, 1):
-            similar_command_name = similar_command_data[0]
-            similar_command = self.bot.get_command(similar_command_name)
+        command_suggestions = []
+        if similar_command_names := get_command_suggestions(list(self.bot.all_commands.keys()), command_name):
+            for similar_command_name in similar_command_names:
+                similar_command = self.bot.get_command(similar_command_name)
 
-            if not similar_command:
-                return
+                if not similar_command:
+                    continue
 
-            log_msg = "Cancelling attempt to suggest a command due to failed checks."
-            try:
-                if not await similar_command.can_run(ctx):
+                log_msg = "Cancelling attempt to suggest a command due to failed checks."
+                try:
+                    if not await similar_command.can_run(ctx):
+                        log.debug(log_msg)
+                        continue
+                except commands.errors.CommandError:
                     log.debug(log_msg)
-                    return
-            except commands.errors.CommandError as cmd_error:
-                log.debug(log_msg)
-                await self.on_command_error(ctx, cmd_error)
-                return
+                    continue
+
+                command_suggestions.append(similar_command_name)
 
             misspelled_content = ctx.message.content
             e = Embed()
             e.set_author(name="Did you mean:", icon_url=QUESTION_MARK_ICON)
-            e.description = misspelled_content.replace(command_name, similar_command_name, 1)
-            await ctx.send(embed=e, delete_after=RedirectOutput.delete_delay)
+            e.description = "\n".join(
+                misspelled_content.replace(command_name, cmd, 1) for cmd in command_suggestions
+            )
+            await ctx.send(embed=e, delete_after=DELETE_DELAY)
 
 
-def setup(bot: Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Load the ErrorHandler cog."""
-    bot.add_cog(CommandErrorHandler(bot))
+    await bot.add_cog(CommandErrorHandler(bot))

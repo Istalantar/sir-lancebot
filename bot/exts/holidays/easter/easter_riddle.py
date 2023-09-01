@@ -18,7 +18,7 @@ TIMELIMIT = 10
 
 
 class EasterRiddle(commands.Cog):
-    """This cog contains the command for the Easter quiz!"""
+    """The Easter quiz cog."""
 
     def __init__(self, bot: Bot):
         self.bot = bot
@@ -107,6 +107,6 @@ class EasterRiddle(commands.Cog):
             self.winners.add(message.author.mention)
 
 
-def setup(bot: Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Easter Riddle Cog load."""
-    bot.add_cog(EasterRiddle(bot))
+    await bot.add_cog(EasterRiddle(bot))

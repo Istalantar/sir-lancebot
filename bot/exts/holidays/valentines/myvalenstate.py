@@ -39,7 +39,7 @@ class MyValenstate(commands.Cog):
         return pre_row[-1]
 
     @commands.command()
-    async def myvalenstate(self, ctx: commands.Context, *, name: str = None) -> None:
+    async def myvalenstate(self, ctx: commands.Context, *, name: str | None = None) -> None:
         """Find the vacation spot(s) with the most matching characters to the invoking user."""
         eq_chars = collections.defaultdict(int)
         if name is None:
@@ -47,7 +47,7 @@ class MyValenstate(commands.Cog):
         else:
             author = name.lower().replace(" ", "")
 
-        for state in STATES.keys():
+        for state in STATES:
             lower_state = state.lower().replace(" ", "")
             eq_chars[state] = self.levenshtein(author, lower_state)
 
@@ -64,8 +64,7 @@ class MyValenstate(commands.Cog):
             embed_text = f"You have another match, this being {matches[0]}."
         else:
             embed_title = "You have a true match!"
-            embed_text = "This state is your true Valenstate! There are no states that would suit" \
-                         " you better"
+            embed_text = "This state is your true Valenstate! There are no states that would suit you better"
 
         embed = discord.Embed(
             title=f"Your Valenstate is {valenstate} \u2764",
@@ -77,6 +76,6 @@ class MyValenstate(commands.Cog):
         await ctx.send(embed=embed)
 
 
-def setup(bot: Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Load the Valenstate Cog."""
-    bot.add_cog(MyValenstate())
+    await bot.add_cog(MyValenstate())

@@ -1,7 +1,6 @@
 import logging
 import re
 import textwrap
-from typing import Optional
 
 import discord
 from discord.ext import commands
@@ -9,7 +8,6 @@ from discord.ext import commands
 from bot.bot import Bot
 from bot.constants import Client, Roles
 from bot.utils.decorators import with_role
-from bot.utils.extensions import invoke_help_command
 
 from ._helpers import EvalContext
 
@@ -85,7 +83,7 @@ class InternalEval(commands.Cog):
 
         return shortened_output
 
-    async def _upload_output(self, output: str) -> Optional[str]:
+    async def _upload_output(self, output: str) -> str | None:
         """Upload `internal eval` output to our pastebin and return the url."""
         data = self.shorten_output(output, max_length=MAX_LENGTH)
         try:
@@ -154,7 +152,7 @@ class InternalEval(commands.Cog):
     async def internal_group(self, ctx: commands.Context) -> None:
         """Internal commands. Top secret!"""
         if not ctx.invoked_subcommand:
-            await invoke_help_command(ctx)
+            await self.bot.invoke_help_command(ctx)
 
     @internal_group.command(name="eval", aliases=("e",))
     @with_role(Roles.admins)

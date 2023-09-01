@@ -123,26 +123,26 @@ class ScoreboardView(View):
         return rank_embed
 
     @discord.ui.button(label="Scoreboard for Speed", style=ButtonStyle.green)
-    async def speed_leaderboard(self, button: Button, interaction: Interaction) -> None:
+    async def speed_leaderboard(self, interaction: Interaction, _: Button) -> None:
         """
         Send an ephemeral message with the speed leaderboard embed.
 
         Parameters:
-            - button: The discord.ui.Button instance representing the `Speed Leaderboard` button.
             - interaction: The discord.Interaction instance containing information on the interaction between the user
             and the button.
+            - button: The discord.ui.Button instance representing the `Speed Leaderboard` button.
         """
         await interaction.response.send_message(embed=await self._create_speed_embed(), ephemeral=True)
 
     @discord.ui.button(label="What's my rank?", style=ButtonStyle.blurple)
-    async def rank_button(self, button: Button, interaction: Interaction) -> None:
+    async def rank_button(self, interaction: Interaction, _: Button) -> None:
         """
         Send an ephemeral message with the user's rank for the overall points/average speed.
 
         Parameters:
-            - button: The discord.ui.Button instance representing the `What's my rank?` button.
             - interaction: The discord.Interaction instance containing information on the interaction between the user
             and the button.
+            - button: The discord.ui.Button instance representing the `What's my rank?` button.
         """
         await interaction.response.send_message(embed=self._get_rank(interaction.user), ephemeral=True)
 
@@ -155,18 +155,18 @@ class Scoreboard:
         self._points = {}
         self._speed = {}
 
-    def assign_points(self, user_id: int, *, points: int = None, speed: float = None) -> None:
+    def assign_points(self, user_id: int, *, points: int | None = None, speed: float | None = None) -> None:
         """
         Assign points or deduct points to/from a certain user.
 
         This method should be called once the question has finished and all answers have been registered.
         """
-        if points is not None and user_id not in self._points.keys():
+        if points is not None and user_id not in self._points:
             self._points[user_id] = points
         elif points is not None:
             self._points[user_id] += points
 
-        if speed is not None and user_id not in self._speed.keys():
+        if speed is not None and user_id not in self._speed:
             self._speed[user_id] = [1, speed]
         elif speed is not None:
             self._speed[user_id] = [

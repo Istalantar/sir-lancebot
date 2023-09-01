@@ -2,7 +2,6 @@ import json
 import logging
 import random
 from pathlib import Path
-from typing import Optional
 
 import discord
 from discord.ext import commands
@@ -58,7 +57,7 @@ class PrideLeader(commands.Cog):
 
     def embed_builder(self, pride_leader: dict) -> discord.Embed:
         """Generate an Embed with information about a pride leader."""
-        name = [name for name, info in PRIDE_RESOURCE.items() if info == pride_leader][0]
+        name = next(name for name, info in PRIDE_RESOURCE.items() if info == pride_leader)
 
         embed = discord.Embed(
             title=name,
@@ -90,7 +89,7 @@ class PrideLeader(commands.Cog):
         return embed
 
     @commands.command(aliases=("pl", "prideleader"))
-    async def pride_leader(self, ctx: commands.Context, *, pride_leader_name: Optional[str]) -> None:
+    async def pride_leader(self, ctx: commands.Context, *, pride_leader_name: str | None) -> None:
         """
         Information about a Pride Leader.
 
@@ -112,6 +111,6 @@ class PrideLeader(commands.Cog):
         await ctx.send(embed=embed)
 
 
-def setup(bot: Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Load the Pride Leader Cog."""
-    bot.add_cog(PrideLeader(bot))
+    await bot.add_cog(PrideLeader(bot))

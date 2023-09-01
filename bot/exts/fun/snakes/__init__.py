@@ -1,11 +1,14 @@
 import logging
 
 from bot.bot import Bot
+from bot.constants import Tokens
 from bot.exts.fun.snakes._snakes_cog import Snakes
 
 log = logging.getLogger(__name__)
 
 
-def setup(bot: Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Load the Snakes Cog."""
-    bot.add_cog(Snakes(bot))
+    if not Tokens.youtube:
+        log.warning("No Youtube token. All YouTube related commands in Snakes cog won't work.")
+    await bot.add_cog(Snakes(bot))

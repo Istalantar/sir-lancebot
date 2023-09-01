@@ -1,6 +1,6 @@
 import logging
 import re
-from datetime import datetime
+from datetime import UTC, datetime
 from html import unescape
 
 from discord import Color, Embed, TextChannel
@@ -85,7 +85,7 @@ class WikipediaSearch(commands.Cog):
                 colour=Color.og_blurple()
             )
             embed.set_thumbnail(url=WIKI_THUMBNAIL)
-            embed.timestamp = datetime.utcnow()
+            embed.timestamp = datetime.now(tz=UTC)
             await LinePaginator.paginate(contents, ctx, embed, restrict_to_user=ctx.author)
         else:
             await ctx.send(
@@ -93,6 +93,6 @@ class WikipediaSearch(commands.Cog):
             )
 
 
-def setup(bot: Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Load the WikipediaSearch cog."""
-    bot.add_cog(WikipediaSearch(bot))
+    await bot.add_cog(WikipediaSearch(bot))

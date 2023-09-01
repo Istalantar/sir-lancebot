@@ -1,15 +1,14 @@
 import logging
 import re
-from typing import Literal, Optional
+from typing import Literal
 
 import discord
 from discord.ext import commands
-from emoji import UNICODE_EMOJI_ENGLISH, is_emoji
+from emoji import EMOJI_DATA, is_emoji
 
 from bot.bot import Bot
 from bot.constants import Colours, Roles
 from bot.utils.decorators import whitelist_override
-from bot.utils.extensions import invoke_help_command
 
 log = logging.getLogger(__name__)
 BASE_URLS = {
@@ -50,7 +49,7 @@ class Twemoji(commands.Cog):
         emoji = "".join(Twemoji.emoji(e) or "" for e in codepoint.split("-"))
 
         embed = discord.Embed(
-            title=Twemoji.alias_to_name(UNICODE_EMOJI_ENGLISH[emoji]),
+            title=Twemoji.alias_to_name(EMOJI_DATA[emoji]["en"]),
             description=f"{codepoint.replace('-', ' ')}\n[Download svg]({Twemoji.get_url(codepoint, 'svg')})",
             colour=Colours.twitter_blue,
         )
@@ -58,7 +57,7 @@ class Twemoji(commands.Cog):
         return embed
 
     @staticmethod
-    def emoji(codepoint: Optional[str]) -> Optional[str]:
+    def emoji(codepoint: str | None) -> str | None:
         """
         Returns the emoji corresponding to a given `codepoint`, or `None` if no emoji was found.
 
@@ -67,9 +66,10 @@ class Twemoji(commands.Cog):
         """
         if code := Twemoji.trim_code(codepoint):
             return chr(int(code, 16))
+        return None
 
     @staticmethod
-    def codepoint(emoji: Optional[str]) -> Optional[str]:
+    def codepoint(emoji: str | None) -> str | None:
         """
         Returns the codepoint, in a trimmed format, of a single emoji.
 
@@ -83,7 +83,7 @@ class Twemoji(commands.Cog):
         return hex(ord(emoji)).removeprefix("0x")
 
     @staticmethod
-    def trim_code(codepoint: Optional[str]) -> Optional[str]:
+    def trim_code(codepoint: str | None) -> str | None:
         """
         Returns the meaningful information from the given `codepoint`.
 
@@ -99,6 +99,7 @@ class Twemoji(commands.Cog):
         """
         if code := CODEPOINT_REGEX.search(codepoint or ""):
             return code.group()
+        return None
 
     @staticmethod
     def codepoint_from_input(raw_emoji: tuple[str, ...]) -> str:
@@ -133,7 +134,7 @@ class Twemoji(commands.Cog):
     async def twemoji(self, ctx: commands.Context, *raw_emoji: str) -> None:
         """Sends a preview of a given Twemoji, specified by codepoint or emoji."""
         if len(raw_emoji) == 0:
-            await invoke_help_command(ctx)
+            await self.bot.invoke_help_command(ctx)
             return
         try:
             codepoint = self.codepoint_from_input(raw_emoji)
@@ -145,6 +146,6 @@ class Twemoji(commands.Cog):
         await ctx.send(embed=self.build_embed(codepoint))
 
 
-def setup(bot: Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Load the Twemoji cog."""
-    bot.add_cog(Twemoji(bot))
+    await bot.add_cog(Twemoji(bot))
