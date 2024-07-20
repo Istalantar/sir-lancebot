@@ -1,6 +1,5 @@
 import asyncio
 import json
-import logging
 import operator
 import random
 import re
@@ -13,12 +12,13 @@ from pathlib import Path
 
 import discord
 from discord.ext import commands, tasks
+from pydis_core.utils.logging import get_logger
 from rapidfuzz import fuzz
 
 from bot.bot import Bot
 from bot.constants import Client, Colours, MODERATION_ROLES, NEGATIVE_REPLIES
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 DEFAULT_QUESTION_LIMIT = 7
 STANDARD_VARIATION_TOLERANCE = 88
@@ -104,6 +104,7 @@ def linear_system(q_format: str, a_format: str) -> QuizEntry:
 
     return QuizEntry(question, [answer], DYNAMICALLY_GEN_VARIATION_TOLERANCE)
 
+
 def mod_arith(q_format: str, a_format: str) -> QuizEntry:
     """Generate a basic modular arithmetic question."""
     quotient, m, b = random.randint(30, 40), random.randint(10, 20), random.randint(200, 350)
@@ -115,6 +116,7 @@ def mod_arith(q_format: str, a_format: str) -> QuizEntry:
 
     return QuizEntry(question, [answer], DYNAMICALLY_GEN_VARIATION_TOLERANCE)
 
+
 def ngonal_prism(q_format: str, a_format: str) -> QuizEntry:
     """Generate a question regarding vertices on n-gonal prisms."""
     n = random.randint(0, len(N_PREFIXES) - 1)
@@ -124,6 +126,7 @@ def ngonal_prism(q_format: str, a_format: str) -> QuizEntry:
 
     return QuizEntry(question, [answer], DYNAMICALLY_GEN_VARIATION_TOLERANCE)
 
+
 def imag_sqrt(q_format: str, a_format: str) -> QuizEntry:
     """Generate a negative square root question."""
     ans_coeff = random.randint(3, 10)
@@ -132,6 +135,7 @@ def imag_sqrt(q_format: str, a_format: str) -> QuizEntry:
     answer = a_format.format(ans_coeff)
 
     return QuizEntry(question, [answer], DYNAMICALLY_GEN_VARIATION_TOLERANCE)
+
 
 def binary_calc(q_format: str, a_format: str) -> QuizEntry:
     """Generate a binary calculation question."""
@@ -155,6 +159,7 @@ def binary_calc(q_format: str, a_format: str) -> QuizEntry:
 
     return QuizEntry(question, [answer], DYNAMICALLY_GEN_VARIATION_TOLERANCE)
 
+
 def solar_system(q_format: str, a_format: str) -> QuizEntry:
     """Generate a question on the planets of the Solar System."""
     planet = random.choice(PLANETS)
@@ -163,6 +168,7 @@ def solar_system(q_format: str, a_format: str) -> QuizEntry:
     answer = a_format.format(planet[1])
 
     return QuizEntry(question, [answer], DYNAMICALLY_GEN_VARIATION_TOLERANCE)
+
 
 def taxonomic_rank(q_format: str, a_format: str) -> QuizEntry:
     """Generate a question on taxonomic classification."""
@@ -430,7 +436,7 @@ class TriviaQuiz(commands.Cog):
 
             try:
                 msg = await self.bot.wait_for("message", check=check_func(quiz_entry.var_tol), timeout=10)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 # In case of TimeoutError and the game has been stopped, then do nothing.
                 if not self.game_status[ctx.channel.id]:
                     break
@@ -619,8 +625,7 @@ class TriviaQuiz(commands.Cog):
 
         for cat, description in self.categories.items():
             embed.description += (
-                f"**- {cat.capitalize()}**\n"
-                f"{description.capitalize()}\n"
+                f"- **{cat.capitalize()}**: {description.capitalize()}\n"
             )
 
         return embed

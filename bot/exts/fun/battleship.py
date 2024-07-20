@@ -1,5 +1,3 @@
-import asyncio
-import logging
 import random
 import re
 from dataclasses import dataclass
@@ -7,11 +5,12 @@ from functools import partial
 
 import discord
 from discord.ext import commands
+from pydis_core.utils.logging import get_logger
 
 from bot.bot import Bot
-from bot.constants import Colours
+from bot.constants import Colours, Emojis
 
-log = logging.getLogger(__name__)
+log = get_logger(__name__)
 
 
 @dataclass
@@ -87,7 +86,6 @@ NUMBERS = [
 ]
 
 CROSS_EMOJI = "\u274e"
-HAND_RAISED_EMOJI = "\U0001f64b"
 
 
 class Game:
@@ -244,7 +242,7 @@ class Game:
         while True:
             try:
                 await self.bot.wait_for("message", check=self.predicate, timeout=60.0)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 await self.turn.user.send("You took too long. Game over!")
                 await self.next.user.send(f"{self.turn.user} took too long. Game over!")
                 await self.public_channel.send(
@@ -339,7 +337,7 @@ class Battleship(commands.Cog):
             return True  # Is dealt with later on
         if (
             user.id not in (ctx.me.id, ctx.author.id)
-            and str(reaction.emoji) == HAND_RAISED_EMOJI
+            and str(reaction.emoji) == Emojis.hand_raised
             and reaction.message.id == announcement.id
         ):
             if self.already_playing(user):
@@ -356,13 +354,11 @@ class Battleship(commands.Cog):
 
             return True
 
-        if (
+        return bool(
             user.id == ctx.author.id
             and str(reaction.emoji) == CROSS_EMOJI
             and reaction.message.id == announcement.id
-        ):
-            return True
-        return False
+        )
 
     def already_playing(self, player: discord.Member) -> bool:
         """Check if someone is already in a game."""
@@ -387,11 +383,11 @@ class Battleship(commands.Cog):
 
         announcement = await ctx.send(
             "**Battleship**: A new game is about to start!\n"
-            f"Press {HAND_RAISED_EMOJI} to play against {ctx.author.mention}!\n"
+            f"Press {Emojis.hand_raised} to play against {ctx.author.mention}!\n"
             f"(Cancel the game with {CROSS_EMOJI}.)"
         )
         self.waiting.append(ctx.author)
-        await announcement.add_reaction(HAND_RAISED_EMOJI)
+        await announcement.add_reaction(Emojis.hand_raised)
         await announcement.add_reaction(CROSS_EMOJI)
 
         try:
@@ -400,7 +396,7 @@ class Battleship(commands.Cog):
                 check=partial(self.predicate, ctx, announcement),
                 timeout=60.0
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             self.waiting.remove(ctx.author)
             await announcement.delete()
             await ctx.send(f"{ctx.author.mention} Seems like there's no one here to play...")

@@ -1,5 +1,4 @@
 import functools
-import logging
 from collections.abc import Mapping
 from enum import Enum
 
@@ -7,6 +6,7 @@ from discord import Colour, Embed
 from discord.ext import commands
 from discord.ext.commands import Context, group
 from pydis_core.utils._extensions import unqualify
+from pydis_core.utils.logging import get_logger
 
 from bot import exts
 from bot.bot import Bot
@@ -14,7 +14,7 @@ from bot.constants import Client, Emojis, MODERATION_ROLES, Roles
 from bot.utils.checks import with_role_check
 from bot.utils.pagination import LinePaginator
 
-log = logging.getLogger(__name__)
+log = get_logger(__name__)
 
 
 UNLOAD_BLACKLIST = {f"{exts.__name__}.core.extensions"}
@@ -207,7 +207,7 @@ class Extensions(commands.Cog):
             if error:
                 failures[extension] = error
 
-        emoji = ":x:" if failures else ":ok_hand:"
+        emoji = ":x:" if failures else Emojis.ok_hand
         msg = f"{emoji} {len(extensions) - len(failures)} / {len(extensions)} extensions {verb}ed."
 
         if failures:
@@ -241,7 +241,7 @@ class Extensions(commands.Cog):
             error_msg = f"{e.__class__.__name__}: {e}"
             msg = f":x: Failed to {verb} extension `{ext}`:\n```\n{error_msg}\n```"
         else:
-            msg = f":ok_hand: Extension successfully {verb}ed: `{ext}`."
+            msg = f"{Emojis.ok_hand} Extension successfully {verb}ed: `{ext}`."
             log.debug(msg[10:])
 
         return msg, error_msg

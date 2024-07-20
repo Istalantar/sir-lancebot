@@ -1,4 +1,3 @@
-import logging
 import random
 import re
 from dataclasses import dataclass
@@ -8,11 +7,12 @@ from urllib.parse import quote
 import discord
 from aiohttp import ClientResponse
 from discord.ext import commands
+from pydis_core.utils.logging import get_logger
 
 from bot.bot import Bot
 from bot.constants import Colours, ERROR_REPLIES, Emojis, NEGATIVE_REPLIES, Tokens
 
-log = logging.getLogger(__name__)
+log = get_logger(__name__)
 
 GITHUB_API_URL = "https://api.github.com"
 
@@ -114,10 +114,11 @@ class GithubInfo(commands.Cog):
         # from issues: if the 'issues' key is present in the response then we can pull the data we
         # need from the initial API call.
         if "issues" in json_data["html_url"]:
-            if json_data.get("state") == "open":
-                emoji = Emojis.issue_open
-            else:
-                emoji = Emojis.issue_closed
+            emoji = Emojis.issue_open
+            if json_data.get("state") == "closed":
+                emoji = Emojis.issue_completed
+            if json_data.get("state_reason") == "not_planned":
+                emoji = Emojis.issue_not_planned
 
         # If the 'issues' key is not contained in the API response and there is no error code, then
         # we know that a PR has been requested and a call to the pulls API endpoint is necessary
@@ -285,7 +286,7 @@ class GithubInfo(commands.Cog):
                 embed.add_field(name="Gists", value=f"[{gists}](https://gist.github.com/{quote(username, safe='')})")
 
                 embed.add_field(
-                    name=f"Organization{'s' if len(orgs)!=1 else ''}",
+                    name=f"Organization{'s' if len(orgs) != 1 else ''}",
                     value=orgs_to_add if orgs else "No organizations."
                 )
             embed.add_field(name="Website", value=blog)

@@ -1,14 +1,15 @@
 import datetime
-import logging
 
 import pydantic
 from discord import Embed
 from discord.ext import commands
+from pydis_core.utils.logging import get_logger
 
 from bot.bot import Bot
-from bot.constants import Colours
+from bot.constants import Colours, Roles
+from bot.utils.decorators import whitelist_override
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 API_URL = "https://datatracker.ietf.org/doc/rfc{rfc_id}/doc.json"
 DOCUMENT_URL = "https://datatracker.ietf.org/doc/rfc{rfc_id}"
@@ -19,7 +20,7 @@ class RfcDocument(pydantic.BaseModel):
 
     title: str
     description: str
-    revisions: str
+    revisions: int
     created: datetime.datetime
 
 
@@ -61,6 +62,8 @@ class Rfc(commands.Cog):
 
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.command()
+    @commands.guild_only()
+    @whitelist_override(roles=(Roles.everyone,))
     async def rfc(self, ctx: commands.Context, rfc_id: int) -> None:
         """Sends the corresponding RFC with the given ID."""
         document = await self.retrieve_data(rfc_id)

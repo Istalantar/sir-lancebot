@@ -1,9 +1,10 @@
-import logging
 import re
 import textwrap
 
 import discord
 from discord.ext import commands
+from pydis_core.utils.logging import get_logger
+from pydis_core.utils.paste_service import PasteFile, PasteTooLongError, PasteUploadError, send_to_paste_service
 
 from bot.bot import Bot
 from bot.constants import Client, Roles
@@ -13,7 +14,7 @@ from ._helpers import EvalContext
 
 __all__ = ["InternalEval"]
 
-log = logging.getLogger(__name__)
+log = get_logger(__name__)
 
 FORMATTED_CODE_REGEX = re.compile(
     r"(?P<delim>(?P<block>```)|``?)"        # code delimiter: 1-3 backticks; (?P=block) only matches if it's a block
@@ -86,17 +87,16 @@ class InternalEval(commands.Cog):
     async def _upload_output(self, output: str) -> str | None:
         """Upload `internal eval` output to our pastebin and return the url."""
         data = self.shorten_output(output, max_length=MAX_LENGTH)
+        file = PasteFile(content=data, lexer="text")
         try:
-            async with self.bot.http_session.post(
-                "https://paste.pythondiscord.com/documents", data=data, raise_for_status=True
-            ) as resp:
-                data = await resp.json()
-
-            if "key" in data:
-                return f"https://paste.pythondiscord.com/{data['key']}"
-        except Exception:
-            # 400 (Bad Request) means there are too many characters
+            resp = await send_to_paste_service(
+                files=[file],
+                http_session=self.bot.http_session,
+            )
+            return resp.link
+        except (PasteTooLongError, PasteUploadError):
             log.exception("Failed to upload `internal eval` output to paste service!")
+            return None
 
     async def _send_output(self, ctx: commands.Context, output: str) -> None:
         """Send the `internal eval` output to the command invocation context."""
@@ -165,7 +165,7 @@ class InternalEval(commands.Cog):
                 code = "\n".join(block.group("code") for block in blocks)
             else:
                 match = match[0] if len(blocks) == 0 else blocks[0]
-                code, block, lang, delim = match.group("code", "block", "lang", "delim")
+                code, _, _, _ = match.group("code", "block", "lang", "delim")
 
         else:
             code = RAW_CODE_REGEX.fullmatch(code).group("code")

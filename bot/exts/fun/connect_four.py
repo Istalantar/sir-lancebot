@@ -1,4 +1,3 @@
-import asyncio
 import random
 from functools import partial
 
@@ -131,7 +130,7 @@ class Game:
         while True:
             try:
                 reaction, user = await self.bot.wait_for("reaction_add", check=self.predicate, timeout=30.0)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 await self.channel.send(f"{self.player_active.mention}, you took too long. Game over!")
                 return None
             else:
@@ -317,13 +316,11 @@ class ConnectFour(commands.Cog):
 
             return True
 
-        if (
+        return bool(
             user.id == ctx.author.id
             and str(reaction.emoji) == CROSS_EMOJI
             and reaction.message.id == announcement.id
-        ):
-            return True
-        return False
+        )
 
     def already_playing(self, player: discord.Member) -> bool:
         """Check if someone is already in a game."""
@@ -406,7 +403,7 @@ class ConnectFour(commands.Cog):
                 check=partial(self.get_player, ctx, announcement),
                 timeout=60.0
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             self.waiting.remove(ctx.author)
             await announcement.delete()
             await ctx.send(

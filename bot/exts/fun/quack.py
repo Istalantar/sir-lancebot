@@ -1,16 +1,16 @@
-import logging
 import random
 from typing import Literal
 
 import discord
 from discord.ext import commands
+from pydis_core.utils.logging import get_logger
 
 from bot.bot import Bot
 from bot.constants import Colours, NEGATIVE_REPLIES
 
 API_URL = "https://quackstack.pythondiscord.com"
 
-log = logging.getLogger(__name__)
+log = get_logger(__name__)
 
 
 class Quackstack(commands.Cog):
@@ -19,7 +19,7 @@ class Quackstack(commands.Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(aliases=("ducky",))
     async def quack(
         self,
         ctx: commands.Context,

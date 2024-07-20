@@ -1,16 +1,16 @@
 import collections
 import json
-import logging
 from pathlib import Path
 from random import choice
 
 import discord
 from discord.ext import commands
+from pydis_core.utils.logging import get_logger
 
 from bot.bot import Bot
 from bot.constants import Colours
 
-log = logging.getLogger(__name__)
+log = get_logger(__name__)
 
 STATES = json.loads(Path("bot/resources/holidays/valentines/valenstates.json").read_text("utf8"))
 
@@ -27,7 +27,7 @@ class MyValenstate(commands.Cog):
         if len(goal) == 0:
             return len(source)
 
-        pre_row = list(range(0, len(source) + 1))
+        pre_row = list(range(len(source) + 1))
         for i, source_c in enumerate(source):
             cur_row = [i + 1]
             for j, goal_c in enumerate(goal):

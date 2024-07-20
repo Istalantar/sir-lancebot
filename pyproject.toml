@@ -6,40 +6,38 @@ authors = ["Python Discord <info@pythondiscord.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "3.11.*"
+python = "3.12.*"
 
 # See https://bot-core.pythondiscord.com/ for docs.
-pydis_core = { version = "10.2.0", extras = ["async-rediscache"] }
+pydis_core = { version = "11.3.0", extras = ["all"] }
 
-aiodns = "3.0.0"
-rapidfuzz = "3.2.0"
-arrow = "1.2.3"
-beautifulsoup4 = "4.12.2"
-pillow = "10.0.0"
-sentry-sdk = "1.30.0"
+rapidfuzz = "3.9.4"
+arrow = "1.3.0"
+beautifulsoup4 = "4.12.3"
+pillow = "10.4.0"
+sentry-sdk = "2.10.0"
 PyYAML = "6.0.1"
 emojis = "0.7.0"
 coloredlogs = "15.0.1"
 colorama = { version = "0.4.6", markers = "sys_platform == 'win32'" }
-lxml = "4.9.3"
-emoji = "2.8.0"
-pyjokes = "0.6.0"
-pydantic = { version = "1.10.9", extras = ["dotenv"]}
+lxml = "5.2.2"
+emoji = "2.12.1"
+pyjokes = "0.7.2"
+pydantic = { version = "2.6.4", extras = ["dotenv"]}
+pydantic-settings = "2.2.1"
 
 
 [tool.poetry.dev-dependencies]
-isort = "5.12.0"
-pip-licenses = "4.3.2"
-pre-commit = "3.3.3"
-python-dotenv = "1.0.0"
-ruff = "0.0.285"
-taskipy = "1.12.0"
+pip-licenses = "4.5.1"
+pre-commit = "3.7.1"
+python-dotenv = "1.0.1"
+ruff = "0.5.2"
+taskipy = "1.13.0"
 
 [tool.taskipy.tasks]
 start = "python -m bot"
 lint = "pre-commit run --all-files"
 precommit = "pre-commit install"
-isort = "isort ."
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -55,19 +53,31 @@ atomic = true
 known_first_party = ["bot"]
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py312"
 extend-exclude = [".cache"]
+output-format = "concise"
+line-length = 120
+unsafe-fixes = true
+preview = true
+
+[tool.ruff.lint]
+select = ["ANN", "B", "C4", "D", "DTZ", "E", "F", "I", "ISC", "INT", "N", "PGH", "PIE", "Q", "RET", "RSE", "RUF", "S", "SIM", "T20", "TID", "UP", "W"]
 ignore = [
     "ANN002", "ANN003", "ANN101", "ANN102", "ANN204", "ANN206", "ANN401",
     "B904",
     "C401", "C408",
     "D100", "D104", "D105", "D107", "D203", "D212", "D214", "D215", "D301",
     "D400", "D401", "D402", "D404", "D405", "D406", "D407", "D408", "D409", "D410", "D411", "D412", "D413", "D414", "D416", "D417",
-    "E731",
+    "E226", "E731",
     "RET504",
     "RUF005",
+    "RUF029",
     "S311",
     "SIM102", "SIM108",
 ]
-line-length = 120
-select = ["ANN", "B", "C4", "D", "DTZ", "E", "F", "ISC", "INT", "N", "PGH", "PIE", "Q", "RET", "RSE", "RUF", "S", "SIM", "T20", "TID", "UP", "W"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["bot"]
+order-by-type = false
+case-sensitive = true
+combine-as-imports = true

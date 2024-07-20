@@ -1,7 +1,5 @@
-import asyncio
 import io
 import json
-import logging
 import math
 import random
 from itertools import product
@@ -11,8 +9,9 @@ from PIL import Image
 from PIL.ImageDraw import ImageDraw
 from discord import File, Member, Reaction, User
 from discord.ext.commands import Cog, Context
+from pydis_core.utils.logging import get_logger
 
-from bot.constants import MODERATION_ROLES
+from bot.constants import Emojis, MODERATION_ROLES
 
 SNAKE_RESOURCES = Path("bot/resources/fun/snakes").absolute()
 
@@ -299,7 +298,7 @@ def create_snek_frame(
     start_y = random.randint(image_margins[Y], image_dimensions[Y] - image_margins[Y])
     points: list[tuple[float, float]] = [(start_x, start_y)]
 
-    for index in range(0, snake_length):
+    for index in range(snake_length):
         angle = perlin_factory.get_plain_noise(
             ((1 / (snake_length + 1)) * (index + 1)) + perlin_lookup_vertical_shift
         ) * ANGLE_RANGE
@@ -355,18 +354,18 @@ def frame_to_png_bytes(image: Image) -> io.BytesIO:
     return stream
 
 
-log = logging.getLogger(__name__)
-START_EMOJI = "\u2611"     # :ballot_box_with_check: - Start the game
-CANCEL_EMOJI = "\u274C"    # :x: - Cancel or leave the game
-ROLL_EMOJI = "\U0001F3B2"  # :game_die: - Roll the die!
-JOIN_EMOJI = "\U0001F64B"  # :raising_hand: - Join the game.
+log = get_logger(__name__)
+START_EMOJI = Emojis.check
+CANCEL_EMOJI = Emojis.cross_mark
+DICE_ROLL_EMOJI = "\U0001F3B2"
+JOIN_EMOJI = "\U0001F64B"
 STARTUP_SCREEN_EMOJI = [
     JOIN_EMOJI,
     START_EMOJI,
     CANCEL_EMOJI
 ]
 GAME_SCREEN_EMOJI = [
-    ROLL_EMOJI,
+    DICE_ROLL_EMOJI,
     CANCEL_EMOJI
 ]
 
@@ -453,7 +452,7 @@ class SnakeAndLaddersGame:
 
                 await startup.remove_reaction(reaction.emoji, user)
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 log.debug("Snakes and Ladders timed out waiting for a reaction")
                 await self.cancel_game()
                 return  # We're done, no reactions for the last 5 minutes
@@ -586,7 +585,7 @@ class SnakeAndLaddersGame:
             file=board_file
         )
         temp_positions = await self.channel.send(
-            f"**Current positions**:\n{player_list}\n\nUse {ROLL_EMOJI} to roll the dice!"
+            f"**Current positions**:\n{player_list}\n\nUse {DICE_ROLL_EMOJI} to roll the dice!"
         )
 
         # Delete the previous messages
@@ -616,7 +615,7 @@ class SnakeAndLaddersGame:
                     check=game_event_check
                 )
 
-                if reaction.emoji == ROLL_EMOJI:
+                if reaction.emoji == DICE_ROLL_EMOJI:
                     await self.player_roll(user)
                 elif reaction.emoji == CANCEL_EMOJI:
                     if self._is_moderator(user) and user not in self.players:
@@ -630,7 +629,7 @@ class SnakeAndLaddersGame:
                 if self._check_all_rolled():
                     break
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 log.debug("Snakes and Ladders timed out waiting for a reaction")
                 await self.cancel_game()
                 return  # We're done, no reactions for the last 5 minutes

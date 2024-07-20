@@ -21,12 +21,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Python Dependencies
-        uses: HassanAbouelela/actions/setup-python@setup-python_v1.4.1
+        uses: HassanAbouelela/actions/setup-python@setup-python_v1.6.0
         with:
-          python_version: "3.11"
+          python_version: "3.12"
 
       # Check all of our dev dependencies are compatible with the MIT license.
       # If you added a new dependencies that is being rejected,
@@ -34,6 +34,7 @@ jobs:
       # and add it to the ALLOWED_LICENSE variable
       - name: Check Dependencies License
         run: |
+          poetry self add poetry-plugin-export
           pip-licenses --allow-only="$ALLOWED_LICENSE" \
             --package $(poetry export -f requirements.txt --without-hashes | sed "s/==.*//g" | tr "\n" " ")
 
@@ -51,7 +52,7 @@ jobs:
 
       # Run `ruff` using github formatting to enable automatic inline annotations.
       - name: Run ruff
-        run: "ruff check --format=github ."
+        run: "ruff check --output-format=github ."
 
       # Prepare the Pull Request Payload artifact. If this fails, we
       # we fail silently using the `continue-on-error` option. It's
@@ -70,7 +71,7 @@ jobs:
       - name: Upload a Build Artifact
         if: always() && steps.prepare-artifact.outcome == 'success'
         continue-on-error: true
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: pull-request-payload
           path: pull_request_payload.json

@@ -1,6 +1,5 @@
 import asyncio
 import colorsys
-import logging
 import os
 import random
 import re
@@ -16,6 +15,7 @@ from aiohttp import ClientTimeout
 from discord import Colour, Embed, File, Member, Message, Reaction
 from discord.errors import HTTPException
 from discord.ext.commands import Cog, CommandError, Context, bot_has_permissions, group
+from pydis_core.utils.logging import get_logger
 
 from bot.bot import Bot
 from bot.constants import ERROR_REPLIES, Tokens
@@ -23,7 +23,7 @@ from bot.exts.fun.snakes import _utils as utils
 from bot.exts.fun.snakes._converter import Snake
 from bot.utils.decorators import locked
 
-log = logging.getLogger(__name__)
+log = get_logger(__name__)
 
 
 # region: Constants
@@ -283,7 +283,7 @@ class Snakes(Cog):
             params = {}
 
         async with self.bot.http_session.get(url, params=params, timeout=ClientTimeout(total=10)) as response:
-                return await response.json()
+            return await response.json()
 
     def _get_random_long_message(self, messages: list[str], retries: int = 10) -> str:
         """
@@ -375,7 +375,7 @@ class Snakes(Cog):
 
             for image in snake_info["images"]:
                 # Images come in the format of `File:filename.extension`
-                file, sep, filename = image["title"].partition(":")
+                _, _, filename = image["title"].partition(":")
                 filename = filename.replace(" ", "%20")  # Wikipedia returns good data!
 
                 if not filename.startswith("Map"):
@@ -421,8 +421,8 @@ class Snakes(Cog):
 
         # Validate the answer
         try:
-            reaction, user = await ctx.bot.wait_for("reaction_add", timeout=45.0, check=predicate)
-        except asyncio.TimeoutError:
+            reaction, _ = await ctx.bot.wait_for("reaction_add", timeout=45.0, check=predicate)
+        except TimeoutError:
             await ctx.send(f"You took too long. The correct answer was **{options[answer]}**.")
             await message.clear_reactions()
             return
@@ -495,7 +495,7 @@ class Snakes(Cog):
         antidote_answer.pop()
 
         # Begin initial board building
-        for i in range(0, 10):
+        for i in range(10):
             page_guess_list.append(f"{HOLE_EMOJI} {HOLE_EMOJI} {HOLE_EMOJI} {HOLE_EMOJI}")
             page_result_list.append(f"{CROSS_EMOJI} {CROSS_EMOJI} {CROSS_EMOJI} {CROSS_EMOJI}")
             board.append(
@@ -516,7 +516,7 @@ class Snakes(Cog):
             try:
                 reaction, user = await ctx.bot.wait_for(
                     "reaction_add", timeout=300, check=predicate)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 log.debug("Antidote timed out waiting for a reaction")
                 break  # We're done, no reactions for the last 5 minutes
 
@@ -530,7 +530,7 @@ class Snakes(Cog):
                     page_guess_list[antidote_tries] = " ".join(antidote_guess_list)
 
                     # Now check guess
-                    for i in range(0, len(antidote_answer)):
+                    for i in range(len(antidote_answer)):
                         if antidote_guess_list[i] == antidote_answer[i]:
                             guess_result.append(TICK_EMOJI)
                         elif antidote_guess_list[i] in antidote_answer:
@@ -542,7 +542,7 @@ class Snakes(Cog):
 
                     # Rebuild the board
                     board = []
-                    for i in range(0, 10):
+                    for i in range(10):
                         board.append(f"`{i+1:02d}` "
                                      f"{page_guess_list[i]} - "
                                      f"{page_result_list[i]}")
@@ -1058,12 +1058,11 @@ class Snakes(Cog):
             if not message:
 
                 # Get a random message from the users history
-                messages = []
-                async for message in ctx.history(limit=500).filter(
-                        lambda msg: msg.author == ctx.author  # Message was sent by author.
-                ):
-                    messages.append(message.content)
-
+                messages = [
+                    message.content
+                    async for message in ctx.history(limit=500)
+                    if message.author == ctx.author
+                ]
                 message = self._get_random_long_message(messages)
 
             # Build and send the embed

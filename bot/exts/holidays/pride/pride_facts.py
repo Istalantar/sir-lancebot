@@ -1,17 +1,17 @@
 import json
-import logging
 import random
 from datetime import UTC, datetime
 from pathlib import Path
 
 import discord
 from discord.ext import commands
+from pydis_core.utils.logging import get_logger
 
 from bot.bot import Bot
 from bot.constants import Channels, Colours, Month
 from bot.utils.decorators import seasonal_task
 
-log = logging.getLogger(__name__)
+log = get_logger(__name__)
 
 FACTS = json.loads(Path("bot/resources/holidays/pride/facts.json").read_text("utf8"))
 
@@ -56,7 +56,7 @@ class PrideFacts(commands.Cog):
             await ctx.send(f"Could not parse option {option}")
 
     @staticmethod
-    def get_fact_embed(day_num: int | None=None) -> discord.Embed:
+    def get_fact_embed(day_num: int | None = None) -> discord.Embed:
         """
         Makes a embed for the fact on the given day_num to be sent.
 
